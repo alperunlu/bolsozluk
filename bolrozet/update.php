@@ -2,8 +2,8 @@
 
 //ROZET SİSTEMİ
 /*
-1 imececi: compilation başlıklarına entry girmiş
-10 gece tayfası: gece entry girenler
+1 imececi: compilation başlıklarına entry girmiş (organizasyon başlıklarına >3)
+10 gece tayfası: gece entry girenler (şimdilik gece tayfası > 125)
 100 ebe: en babalarda entrysi olan
 1000 respectful: 100'den fazla artı vermiş
 
@@ -12,10 +12,10 @@
 1000000 şafak tayfası: sabaha karşı entry giren
 10000000 temiz: hukuki sebeplerle hiç entrysi silinmemiş
 
-100000000 bol yazar: 1000'den fazla entry girmiş
-1000000000 sol frame canavarı: 100'den fazla başlık açan
+100000000 bol yazar: 2000'den fazla entry girmiş
+1000000000 sol frame canavarı: 250'den fazla başlık açan
 10000000000 rapstar: 100'den fazla takipçisi olan yazar
-100000000000 argeci: sözlükle ilgili isteklere katkı vermiş
+100000000000 argeci: sözlükle ilgili isteklere 10'dan fazla katkı vermiş
 */
 
 $rozet = "000000000000";

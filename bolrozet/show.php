@@ -58,12 +58,19 @@ if($argeci=="1"){ echo "<img src=\"http://www.bolsozluk.com/bolrozet/argeci.png\
 <?php
 $rozet = 11100100011;
 
-$imece = substr($rozet, -1, 1); 
-$gececi = substr($rozet, -2, 1);
-$sevilen = substr($rozet, -6, 1); 
-$bolyazar = substr($rozet, -9, 1); 
-$solfc = substr($rozet, -10, 1); 
-$argeci = substr($rozet, -11, 1);
+$imece = 0;
+$gececi = 0;
+$sevilen = 0;
+$bolyazar = 0;
+$solfc = 0;
+$argeci = 0;
+
+if ($rozet>=1) $imece = substr($rozet, -1, 1); 
+if ($rozet>=10) $gececi = substr($rozet, -2, 1);
+if ($rozet>=100000) $sevilen = substr($rozet, -6, 1); 
+if ($rozet>=100000000) $bolyazar = substr($rozet, -9, 1); 
+if ($rozet>=1000000000) $solfc = substr($rozet, -10, 1); 
+if ($rozet>=10000000000) $argeci = substr($rozet, -11, 1);
 
 echo "<br>imece: ";
 echo $imece;

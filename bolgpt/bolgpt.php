@@ -16,7 +16,7 @@ $link = str_replace(" ","+",$baslik);
 
 if ($kullaniciAdi == "")
 {
-    echo "<b>bolgpt için yetkisiz kullaným.</b> ip adresiniz: $ip";
+    echo "<b>bolgpt iÃ§in yetkisiz kullanÄ±m..</b> ip adresiniz: $ip";
     die();
 }
 
@@ -32,11 +32,11 @@ $entryCheckResult = mysql_query($entryCheck);
 if ($entryCheckResult) {
   $rowCount = mysql_fetch_assoc($entryCheckResult)['count'];
   if ($rowCount < 2) {
-    echo "<b>bolgpt için Yetersiz içerik.</b>";
+    echo "<b>bolgpt iÃ§in Yetersiz iÃ§erik.</b>";
     die();
   }
 } else {
-  echo "<b>Veritabaný hatasý:</b> " . mysql_error($conn);
+  echo "<b>VeritabanÄ± hatasÄ±:</b> " . mysql_error($conn);
   die();
 }
 
@@ -44,13 +44,13 @@ if ($entryCheckResult) {
 $sql = "SELECT * bolgpt entryleri";
 $result = mysql_query($sql);
 if (mysql_num_rows($result) > 4) { //normali 9
-  echo "bolgpt'nin günlük çaðýrma limiti dolmuþ. yarýn tekrar dene.";
+  echo "bolgpt'nin gÃ¼nlÃ¼k Ã§aÄŸÄ±rma limiti dolmuÅŸ. yarÄ±n tekrar dene.";
   die();
 }
 
 if ($lastYazar == "bolgpt") 
 {
-  echo "Bu baþlýða bolgpt yakýnlarda yazmýþ. tekrar çaðýramazsýn.";
+  echo "Bu baÅŸlÄ±ÄŸa bolgpt yakÄ±nlarda yazmÄ±ÅŸ. tekrar Ã§aÄŸÄ±ramazsÄ±n.";
   die();
 }
 
@@ -65,7 +65,7 @@ if (mysql_num_rows($resultFirstEntry) > 0) {
 
 ...
 
-$prompt = "$baslik hakkýnda daha önce $firstEntry, $secondEntry, $thirdEntry, $fourthEntry, $fifthEntry ve $lastEntry yorumlarýndan yola çýkarak ve baþlýktaki ortalama üslubu taklit ederek, eðlenceli ve samimi bir dille; günceli sorgulayan, olumsuz yönleri varsa eleþtirel olarak onu da belirten, tartýþmaya müsait ve yeri geldiðinde sivri bir dille yeni bir yorum yazabilir misin? ayrýca $baslik neyi refere ediyor ve literatürdeki karþýlýðý nedir onlarý da bizimle paylaþ. yeterince ayrýntýya sahip deðilsen bile, bilgi havuzundan faydalan. yorumun 3 ya da 4 cümleyi geçmesin. yazýnýn sonunda da yazdýklarýnla ilgili olduðuna emin olduðun referans bir kavramý da (bkz: referanskavram) þeklinde belirt.";
+$prompt = "$baslik hakkÄ±nda daha Ã¶nce $firstEntry, $secondEntry, $thirdEntry, $fourthEntry, $fifthEntry ve $lastEntry yorumlarÄ±ndan yola Ã§Ä±karak ve baÅŸlÄ±ktaki ortalama Ã¼slubu taklit ederek, eÄŸlenceli ve samimi bir dille; gÃ¼nceli sorgulayan, olumsuz yÃ¶nleri varsa eleÅŸtirel olarak onu da belirten, tartÄ±ÅŸmaya mÃ¼sait ve yeri geldiÄŸinde sivri bir dille yeni bir yorum yazabilir misin? ayrÄ±ca $baslik neyi refere ediyor ve literatÃ¼rdeki karÅŸÄ±lÄ±ÄŸÄ± nedir onlarÄ± da bizimle paylaÅŸ. yeterince ayrÄ±ntÄ±ya sahip deÄŸilsen bile, bilgi havuzundan faydalan. yorumun 3 ya da 4 cÃ¼mleyi geÃ§mesin. yazÄ±nÄ±n sonunda da yazdÄ±klarÄ±nla ilgili olduÄŸuna emin olduÄŸun referans bir kavramÄ± da (bkz: referanskavram) ÅŸeklinde belirt.";
 
 $data = array( 
   "model" => "gpt-4-1106-preview",
@@ -89,7 +89,7 @@ $response = curl_exec($ch);
 $rawData = $response;
 
 if ($response === false) {
-  echo "<b>cURL Hatasý: </b>" . curl_error($ch);
+  echo "<b>cURL HatasÃ½: </b>" . curl_error($ch);
 } else {
 
   $response = mb_convert_encoding($response, 'UTF-8', 'AUTO');
@@ -128,12 +128,12 @@ if ($response === false) {
       $sorgu .= " VALUES ('xxx')";
       mysql_query($sorgu);
 
-      echo "<br><br><b>Mesajlar baþarýyla veritabanýna eklendi.</b>";
+      echo "<br><br><b>Mesajlar baÅŸarÄ±yla veritabanÄ±na eklendi.</b>";
 
       $sorgux = "UPDATE baslik SET tarih='$tarih',gun='$gun',ay='$ay',yil='$yil' WHERE id='xxx'";
       mysql_query($sorgux); 
    } else {
-    echo "<br><br><b>hata:</b> gpt api için ödenen kullaným bedeli aþýldý, Bir problem yaþandý ya da GPT API þu an çalýþmýyor.<br>  <br>
+    echo "<br><br><b>hata:</b> gpt api iÃ§in Ã¶denen kullanÄ±m bedeli aÅŸÄ±ldÄ±, Bir problem yaÅŸandÄ± ya da GPT API ÅŸu an Ã§alÄ±ÅŸmÄ±yor.<br>  <br>
  <img src=\"btc.png\" style=\"width: 25x; height: 25px;\" /> <b>btc</b>: <small>16wqo1RTmtJ8t3z5zLZBdk5aqnN7jPm41L <br></small>
  <img src=\"eth.png\" style=\"width: 25px; height: 25px;\" /> <b>eth</b>: <small>0x9d44c9be49b3e47c413319021e68fb95358a6c8e <br></small>
  <img src=\"avax.png\" style=\"width: 25px; height: 25px;\" /> <b>avax</b>: <small>X-avax14d6mqddt06ltg47c5dd76gdxwq5dcpkzc0uz49 <br></small>
@@ -142,7 +142,7 @@ if ($response === false) {
 
 if ($kullaniciAdi == "xxx")
 {  
-    echo "<br><br>Veritabaný log bilgisi: " . mysql_error() . "<A href=\"xxx">Check API Status</A>";      
+    echo "<br><br>VeritabanÄ± log bilgisi: " . mysql_error() . "<A href=\"xxx">Check API Status</A>";    
 }
   }
 }

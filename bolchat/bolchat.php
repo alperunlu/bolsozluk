@@ -2,17 +2,22 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// session_start();
-// $kullaniciAdi = isset($_SESSION['kullaniciAdi']) ? $_SESSION['kullaniciAdi'] : '';
+//session_start();
+//$kullaniciAdi = isset($_SESSION['kullaniciAdi']) ? $_SESSION['kullaniciAdi'] : '';
+//$yetki = isset($_SESSION['yetki']) ? $_SESSION['yetki'] : '';
 ?>
 
 <div id="bolsozluk-chat-container" style="text-align:left;">
     <div id="chat-header">
         <h3>BolChat</h3>
         <div id="online-count">Çevrimiçi: <span>0</span></div>
+        <?php if($kulYetki === 'admin'): ?>
+            <button id="toggle-hidden" style="margin-left:10px;font-size:0.8em;background:#e74c3c;color:white;border:none;padding:2px 8px;border-radius:3px;">Gizli Mesajlar</button>
+        <?php endif; ?>
     </div>
     
     <div id="chat-messages"></div>
+    <div id="hidden-messages" style="display:none;"></div>
     
     <div id="chat-input-area">
         <form id="chat-form" method="post">
@@ -21,9 +26,9 @@ ini_set('display_errors', 1);
                     type="text" 
                     id="nick" 
                     name="nick" 
-                    placeholder="<?= isset($kullaniciAdi) && $kullaniciAdi ? 'Giriş yapmış kullanıcı: ' . htmlspecialchars($kullaniciAdi) : 'Nickiniz' ?>" 
-                    value="<?= isset($kullaniciAdi) ? htmlspecialchars($kullaniciAdi) : '' ?>" 
-                    <?= isset($kullaniciAdi) && $kullaniciAdi ? 'readonly' : '' ?>
+                    placeholder="<?= $kullaniciAdi ? 'Giriş yapmış kullanıcı: ' . htmlspecialchars($kullaniciAdi) : 'Nickiniz' ?>" 
+                    value="<?= htmlspecialchars($kullaniciAdi) ?>" 
+                    <?= $kullaniciAdi ? 'readonly' : '' ?>
                     autocomplete="off"
                 >
                 <div class="input-main">
@@ -205,6 +210,38 @@ textarea#message {
     align-items: center;
 }
 
+.delete-message {
+    color: red !important;
+    font-size: 0.8em;
+    margin-left: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.delete-message:hover {
+    text-decoration: underline;
+}
+
+.restore-message {
+    color: green !important;
+    font-size: 0.8em;
+    margin-left: 5px;
+    text-decoration: none;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.hidden-message {
+    opacity: 0.6;
+    border-left: 3px solid #e74c3c;
+    padding-left: 5px;
+}
+
 #send-button:hover {
     color: #2980b9;
 }
@@ -234,9 +271,12 @@ textarea#message {
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
 $(function() {
-    var lastMessageTime = '1970-01-01 00:00:00'; 
-    var username = '<?= isset($kullaniciAdi) ? addslashes($kullaniciAdi) : '' ?>';
+    var lastMessageTime = '1970-01-01 00:00:00';
+    var username = '<?= addslashes($kullaniciAdi) ?>';
+    var isAdmin = <?= $kulYetki === 'admin' ? 'true' : 'false' ?>;
     var $chatMessages = $('#chat-messages');
+    var $hiddenMessages = $('#hidden-messages');
+    var showingHidden = false;
 
     function escapeHtml(text) {
         return $('<div>').text(text).html();
@@ -250,16 +290,7 @@ $(function() {
             for (var i = 0; i < messages.length; i++) {
                 var msg = messages[i];
                 if (msg.created_at > lastMessageTime) {
-                    var isOwn = (msg.username === username);
-                    newMessagesHtml +=
-                        '<div class="message ' + (isOwn ? 'own-message' : '') + '">' +
-                            '<div class="message-header">' +
-                                '<span class="user-avatar">' + msg.username.charAt(0).toUpperCase() + '</span>' +
-                                '<span class="username">' + escapeHtml(msg.username) + '</span>' +
-                                '<span class="message-time">' + msg.created_at.substring(11,16) + '</span>' +
-                            '</div>' +
-                            '<div class="message-content">' + escapeHtml(msg.message) + '</div>' +
-                        '</div>';
+                    newMessagesHtml += buildMessageHtml(msg, false);
                     lastMessageTime = msg.created_at;
                 }
             }
@@ -270,17 +301,114 @@ $(function() {
                     $chatMessages.scrollTop($chatMessages[0].scrollHeight);
                 }
             }
+            
+            bindMessageEvents();
         }).fail(function() {
             console.error('Mesajlar yüklenemedi');
         });
 
-        // Online count güncelle
         $.get('sozluk.php?process=chat&action=get_online_count', function(count) {
             $('#online-count span').text(count);
         }).fail(function() {
             console.error('Çevrimiçi sayısı alınamadı');
         });
     }
+
+    function buildMessageHtml(msg, isHidden) {
+        var isOwn = (msg.username === username);
+        var html = 
+            '<div class="message ' + (isOwn ? 'own-message' : '') + 
+            (isHidden ? ' hidden-message' : '') + '" data-message-id="' + msg.id + '">' +
+                '<div class="message-header">' +
+                    '<span class="user-avatar">' + escapeHtml(msg.username.charAt(0).toUpperCase()) + '</span>' +
+                    '<span class="username">' + escapeHtml(msg.username) + '</span>' +
+                    '<span class="message-time">' + escapeHtml(msg.created_at.substring(11,16)) + '</span>' +
+                '</div>' +
+                '<div class="message-content">' + escapeHtml(msg.message);
+        
+        if (isAdmin) {
+            if (isHidden) {
+                html += ' <button class="restore-message">[geri getir]</button>';
+            } else {
+                html += ' <button class="delete-message">[gizle]</button>';
+            }
+        }
+        
+        html += '</div></div>';
+        return html;
+    }
+
+    function bindMessageEvents() {
+        $('.delete-message').off('click').click(function(e) {
+            e.preventDefault();
+            var messageDiv = $(this).closest('.message');
+            var messageId = messageDiv.data('message-id');
+            
+            if (confirm('Bu mesajı gizlemek istediğinize emin misiniz?')) {
+                $.post('sozluk.php?process=chat', {
+                    action: 'delete_message',
+                    message_id: messageId
+                }, function(response) {
+                    if (response.trim() === 'OK') {
+                        messageDiv.fadeOut(300, function() {
+                            $(this).remove();
+                        });
+                    } else {
+                        alert('Gizleme işlemi başarısız: ' + response);
+                    }
+                }).fail(function() {
+                    alert('Gizleme işlemi sırasında hata oluştu');
+                });
+            }
+        });
+
+        $('.restore-message').off('click').click(function(e) {
+            e.preventDefault();
+            var messageDiv = $(this).closest('.message');
+            var messageId = messageDiv.data('message-id');
+            
+            if (confirm('Bu mesajı geri getirmek istediğinize emin misiniz?')) {
+                $.post('sozluk.php?process=chat', {
+                    action: 'restore_message',
+                    message_id: messageId
+                }, function(response) {
+                    if (response.trim() === 'OK') {
+                        messageDiv.fadeOut(300, function() {
+                            $(this).remove();
+                            loadMessages();
+                        });
+                    } else {
+                        alert('Geri getirme işlemi başarısız: ' + response);
+                    }
+                }).fail(function() {
+                    alert('Geri getirme işlemi sırasında hata oluştu');
+                });
+            }
+        });
+    }
+
+    $('#toggle-hidden').click(function() {
+        showingHidden = !showingHidden;
+        if (showingHidden) {
+            $(this).css('background', '#2ecc71');
+            $chatMessages.hide();
+            $hiddenMessages.show().empty();
+            
+            $.getJSON('sozluk.php?process=chat&action=get_hidden_messages', function(messages) {
+                var hiddenHtml = '';
+                for (var i = 0; i < messages.length; i++) {
+                    hiddenHtml += buildMessageHtml(messages[i], true);
+                }
+                $hiddenMessages.html(hiddenHtml);
+                bindMessageEvents();
+            });
+        } else {
+            $(this).css('background', '#e74c3c');
+            $hiddenMessages.hide();
+            $chatMessages.show();
+            loadMessages();
+        }
+    });
 
     $('#message').on('input', function() {
         this.style.height = 'auto';
@@ -300,7 +428,7 @@ $(function() {
         var message = $('#message').val();
 
         if (username) {
-            nick = username; // Girişli kullanıcıysa backend ile uyumlu olsun diye override
+            nick = username;
         }
 
         if (nick.trim() !== '' && message.trim() !== '') {
@@ -311,7 +439,9 @@ $(function() {
             }, function(response) {
                 if (response.trim() === 'OK') {
                     $('#message').val('').height('auto');
-                    loadMessages();
+                    if (!showingHidden) {
+                        loadMessages();
+                    }
                 } else {
                     alert('Mesaj gönderilemedi: ' + response);
                 }

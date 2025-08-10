@@ -9,9 +9,11 @@ ini_set('display_errors', 1);
 
 <div id="bolsozluk-chat-container" style="text-align:left;">
     <div id="chat-header">
-        <h3>BolChat</h3>
+<h3>
+  <a href="https://www.bolsozluk.com/sozluk.php?process=bolchat" target="_blank" style="color: white;">bolchat</a>
+</h3>
         <div id="online-count">Çevrimiçi: <span>0</span></div>
-        <?php if($kulYetki === 'admin'): ?>
+        <?php if($kulYetki === 'admin' || $kulYetki === 'mod'): ?>
             <button id="toggle-hidden" style="margin-left:10px;font-size:0.8em;background:#e74c3c;color:white;border:none;padding:2px 8px;border-radius:3px;">Gizli Mesajlar</button>
         <?php endif; ?>
     </div>
@@ -246,6 +248,14 @@ textarea#message {
     color: #2980b9;
 }
 
+.ip-display {
+    color: #8B4513; /* Kahverengi */
+    font-family: monospace;
+    font-size: 1em;
+    margin-left: 5px;
+    opacity: 0.8;
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(5px); }
     to { opacity: 1; transform: translateY(0); }
@@ -273,7 +283,7 @@ textarea#message {
 $(function() {
     var lastMessageTime = '1970-01-01 00:00:00';
     var username = '<?= addslashes($kullaniciAdi) ?>';
-    var isAdmin = <?= $kulYetki === 'admin' ? 'true' : 'false' ?>;
+    var isAdmin = <?= ($kulYetki === 'admin' || $kulYetki === 'mod') ? 'true' : 'false' ?>;
     var $chatMessages = $('#chat-messages');
     var $hiddenMessages = $('#hidden-messages');
     var showingHidden = false;
@@ -314,17 +324,18 @@ $(function() {
         });
     }
 
-    function buildMessageHtml(msg, isHidden) {
-        var isOwn = (msg.username === username);
-        var html = 
-            '<div class="message ' + (isOwn ? 'own-message' : '') + 
-            (isHidden ? ' hidden-message' : '') + '" data-message-id="' + msg.id + '">' +
-                '<div class="message-header">' +
-                    '<span class="user-avatar">' + escapeHtml(msg.username.charAt(0).toUpperCase()) + '</span>' +
-                    '<span class="username">' + escapeHtml(msg.username) + '</span>' +
-                    '<span class="message-time">' + escapeHtml(msg.created_at.substring(11,16)) + '</span>' +
-                '</div>' +
-                '<div class="message-content">' + escapeHtml(msg.message);
+function buildMessageHtml(msg, isHidden) {
+    var isOwn = (msg.username === username);
+    var html = 
+        '<div class="message ' + (isOwn ? 'own-message' : '') + 
+        (isHidden ? ' hidden-message' : '') + '" data-message-id="' + msg.id + '">' +
+            '<div class="message-header">' +
+                '<span class="user-avatar">' + escapeHtml(msg.username.charAt(0).toUpperCase()) + '</span>' +
+                '<span class="username">' + escapeHtml(msg.username) + '</span>' +
+                (isHidden && msg.ip ? '<span class="ip-display">IP:' + escapeHtml(msg.ip) + '</span>' : '') +
+                '<span class="message-time">' + escapeHtml(msg.created_at.substring(11,16)) + '</span>' +
+            '</div>' +
+            '<div class="message-content">' + escapeHtml(msg.message);
         
         if (isAdmin) {
             if (isHidden) {

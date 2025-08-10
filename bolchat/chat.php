@@ -67,23 +67,24 @@ try {
 
         case 'get_hidden_messages':
             // Sadece adminler gizli mesajları görebilir
-            if ($kulYetki !== 'admin') {
+            if ($kulYetki !== 'admin' && $kulYetki !== 'mod') {
                 header('HTTP/1.1 403 Forbidden');
                 die('Yetkiniz yok');
             }
             
-            $result = mysql_query("SELECT * FROM chat_messages WHERE hidden = 1 ORDER BY id DESC LIMIT 50");
+             $result = mysql_query("SELECT * FROM chat_messages WHERE hidden = 1 ORDER BY id DESC LIMIT 50");
             if (!$result) {
                 throw new Exception('Sorgu hatası: ' . mysql_error());
             }
 
             $messages = array();
             while ($row = mysql_fetch_assoc($result)) {
-                $messages[] = array(
-                    'id' => $row['id'],
-                    'username' => $row['username'],
-                    'message' => $row['message'],
-                    'created_at' => $row['created_at']
+                 $messages[] = array(
+        'id' => $row['id'],
+        'username' => $row['username'],
+        'message' => $row['message'],
+        'created_at' => $row['created_at'],
+        'ip' => $row['ip'] // IP'yi de JSON'a ekliyoruz
                 );
             }
 
@@ -196,7 +197,7 @@ try {
 
         case 'delete_message':
             // Sadece adminler mesaj gizleyebilir
-            if ($kulYetki !== 'admin') {
+            if ($kulYetki !== 'admin' && $kulYetki !== 'mod') {
                 header('HTTP/1.1 403 Forbidden');
                 die('Yetkiniz yok');
             }
@@ -219,7 +220,7 @@ try {
 
         case 'restore_message':
             // Sadece adminler mesaj geri getirebilir
-            if ($kulYetki !== 'admin') {
+            if ($kulYetki !== 'admin' && $kulYetki !== 'mod') {
                 header('HTTP/1.1 403 Forbidden');
                 die('Yetkiniz yok');
             }

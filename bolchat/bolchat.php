@@ -12,9 +12,11 @@ ini_set('display_errors', 1);
 <h3>
   <a href="https://www.bolsozluk.com/sozluk.php?process=bolchat" target="_blank" style="color: white;">bolchat</a>
 </h3>
-        <div id="online-count">Çevrimiçi: <span>0</span></div>
+    <button id="toggle-dark-mode" type="button" style="margin-left:10px;font-size:0.8em;background:#555;color:white;border:none;padding:2px 8px;border-radius:3px;cursor:pointer;">🌙</button>
+
+        <div id="online-count">on: <span>0</span></div>
         <?php if($kulYetki === 'admin' || $kulYetki === 'mod'): ?>
-            <button id="toggle-hidden" style="margin-left:10px;font-size:0.8em;background:#e74c3c;color:white;border:none;padding:2px 8px;border-radius:3px;">Gizli Mesajlar</button>
+            <button id="toggle-hidden" type="button" style="margin-left:10px;font-size:0.8em;background:#e74c3c;color:white;border:none;padding:2px 8px;border-radius:3px;">Gizli Mesajlar</button>
         <?php endif; ?>
     </div>
     
@@ -29,8 +31,9 @@ ini_set('display_errors', 1);
                     id="nick" 
                     name="nick" 
                     placeholder="<?= $kullaniciAdi ? 'Giriş yapmış kullanıcı: ' . htmlspecialchars($kullaniciAdi) : 'Nickiniz' ?>" 
+                    <?= $kullaniciAdi ? 'readonly' : '' ?>                    
                     value="<?= htmlspecialchars($kullaniciAdi) ?>" 
-                    <?= $kullaniciAdi ? 'readonly' : '' ?>
+
                     autocomplete="off"
                 >
                 <div class="input-main">
@@ -54,6 +57,131 @@ ini_set('display_errors', 1);
 </div>
 
 <style>
+/* Dark Mode Temel Stilleri */
+
+.dark-mode .verified-badge {
+    color: #FFA726; /* Daha yumuşak turuncu */
+    background: rgba(0, 0, 0, 0.3); /* Yarı saydam koyu arkaplan */
+    border-color: #FFA726;
+}
+
+.dark-mode .user-avatar {
+    background: linear-gradient(145deg, #FF7043, #FFA000); /* Gradient efekti */
+    color: #121212; /* Koyu metin rengi */
+}
+.dark-mode #bolsozluk-chat-container {
+    background-color: #1e1e1e;
+    color: #e0e0e0;
+}
+
+.dark-mode #chat-header {
+    background-color: #121212;
+    color: #ffffff;
+}
+
+.dark-mode #chat-messages {
+    background-color: #252525;
+    color: #e0e0e0 !important;
+}
+
+.dark-mode .message-content {
+    background-color: #333;
+    color: #fff;
+}
+
+.dark-mode .own-message .message-content {
+    background-color: #1a5276;
+    color: #fff;
+}
+
+.dark-mode #chat-input-area {
+    background-color: #1e1e1e;
+    border-top-color: #333;
+}
+
+.dark-mode .input-main {
+    background-color: #333;
+}
+
+.dark-mode textarea#message {
+    background-color: transparent;
+    color: #fff;
+}
+
+.dark-mode #nick {
+    background-color: #333;
+    color: #fff;
+    border-color: #444;
+}
+
+.dark-mode .username {
+    color: #bbbbbb;
+}
+
+.dark-mode .message-time {
+    color: #888;
+}
+
+.dark-mode #chat-messages::-webkit-scrollbar-thumb,
+.dark-mode #hidden-messages::-webkit-scrollbar-thumb {
+    background: #555;
+}
+
+.dark-mode #chat-messages::-webkit-scrollbar-track,
+.dark-mode #hidden-messages::-webkit-scrollbar-track {
+    background: #333;
+}
+
+.dark-mode #hidden-messages {
+    background-color: #252525;
+    color: #e0e0e0;
+}
+
+.verified-badge {
+    display: inline-block;
+    color: #1DA1F2; /* Twitter mavisi */
+    background: white;
+    border-radius: 50%;
+    font-size: 0.7em;
+    width: 14px;
+    height: 14px;
+    text-align: center;
+    line-height: 14px;
+    margin-left: 4px;
+    border: 1px solid currentColor;
+    vertical-align: middle;
+}
+
+.own-message .verified-badge {
+    background: #3498db; /* Kendi mesajında farklı stil */
+    color: white;
+    border-color: white;
+}
+
+#chat-messages::-webkit-scrollbar,
+#hidden-messages::-webkit-scrollbar {
+    width: 12px;
+}
+#chat-messages::-webkit-scrollbar-track,
+#hidden-messages::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+#chat-messages::-webkit-scrollbar-thumb,
+#hidden-messages::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 3px;
+}
+
+#hidden-messages {
+    display: none;
+    overflow-y: auto; /* Scroll özelliği ekledik */
+    max-height: 60vh; /* Sabit yükseklik */
+    padding: 15px;
+    background: #f5f5f5;
+    flex: 1 1 auto; /* Esnek boyutlandırma */
+    min-height: 0; /* Firefox için gerekli */
+}
+
 #bolsozluk-chat-container {
     font-family: 'Segoe UI', Roboto, sans-serif;
     max-width: 600px;
@@ -94,6 +222,7 @@ ini_set('display_errors', 1);
 }
 
 #chat-messages {
+    scroll-behavior: smooth; /* Yumuşak scroll için */
     flex: 1 1 auto;
     min-height: 0;
     overflow-y: auto;
@@ -288,50 +417,78 @@ $(function() {
     var $hiddenMessages = $('#hidden-messages');
     var showingHidden = false;
 
+// Dark mode butonu için
+$('#toggle-dark-mode').click(function(e) {
+    e.stopPropagation(); // Olay yayılımını durdur
+    e.preventDefault(); // Varsayılan davranışı engelle
+    toggleDarkMode();
+});
+
+    // Dark mode toggle fonksiyonu
+function toggleDarkMode() {
+    const isDark = document.body.classList.toggle('dark-mode');
+    localStorage.setItem('chatDarkMode', isDark);
+    $('#toggle-dark-mode').text(isDark ? '☀️' : '🌙');
+}
+
+// Sayfa yüklendiğinde dark mode kontrolü
+function checkDarkModePreference() {
+    const darkModeEnabled = localStorage.getItem('chatDarkMode') === 'true';
+    if (darkModeEnabled) {
+        document.body.classList.add('dark-mode');
+        $('#toggle-dark-mode').text('☀️');
+    }
+}
+
+
     function escapeHtml(text) {
         return $('<div>').text(text).html();
     }
 
     function loadMessages() {
         $.getJSON('sozluk.php?process=chat&action=get_messages', function(messages) {
-            var newMessagesHtml = '';
-            var isScrolledToBottom = ($chatMessages.scrollTop() + $chatMessages.innerHeight() >= $chatMessages[0].scrollHeight);
+        var newMessagesHtml = '';
+        var currentScroll = $chatMessages.scrollTop();
+        var containerHeight = $chatMessages.innerHeight();
+        var scrollHeight = $chatMessages[0].scrollHeight;
+        // Scroll'un en altta olup olmadığını kontrol et (50px tolerans)
+        var isScrolledToBottom = (currentScroll + containerHeight >= scrollHeight - 50);
 
-            for (var i = 0; i < messages.length; i++) {
-                var msg = messages[i];
-                if (msg.created_at > lastMessageTime) {
-                    newMessagesHtml += buildMessageHtml(msg, false);
-                    lastMessageTime = msg.created_at;
-                }
+        for (var i = 0; i < messages.length; i++) {
+            var msg = messages[i];
+            if (msg.created_at > lastMessageTime) {
+                newMessagesHtml += buildMessageHtml(msg, false);
+                lastMessageTime = msg.created_at;
             }
+        }
 
-            if (newMessagesHtml !== '') {
-                $chatMessages.append(newMessagesHtml);
-                if (isScrolledToBottom) {
-                    $chatMessages.scrollTop($chatMessages[0].scrollHeight);
-                }
-            }
+        if (newMessagesHtml !== '') {
+            $chatMessages.append(newMessagesHtml);
             
-            bindMessageEvents();
-        }).fail(function() {
-            console.error('Mesajlar yüklenemedi');
-        });
-
-        $.get('sozluk.php?process=chat&action=get_online_count', function(count) {
-            $('#online-count span').text(count);
-        }).fail(function() {
-            console.error('Çevrimiçi sayısı alınamadı');
-        });
-    }
+            // Sadece zaten en alttaysak veya yeni mesaj çok uzunsa scroll et
+            if (isScrolledToBottom || newMessagesHtml.length > 1000) {
+                $chatMessages.stop().animate({
+                    scrollTop: $chatMessages[0].scrollHeight
+                }, 200); // 200ms'lik yumuşak geçiş
+            }
+        }
+        
+        bindMessageEvents();
+    }).fail(function() {
+        console.error('Mesajlar yüklenemedi');
+    });
+}
 
 function buildMessageHtml(msg, isHidden) {
     var isOwn = (msg.username === username);
+    var isVerified = parseInt(msg.is_verified) === 1;
+    var verifiedBadge = isVerified ? ' <span class="verified-badge">✓</span>' : '';
     var html = 
         '<div class="message ' + (isOwn ? 'own-message' : '') + 
         (isHidden ? ' hidden-message' : '') + '" data-message-id="' + msg.id + '">' +
             '<div class="message-header">' +
                 '<span class="user-avatar">' + escapeHtml(msg.username.charAt(0).toUpperCase()) + '</span>' +
-                '<span class="username">' + escapeHtml(msg.username) + '</span>' +
+                '<span class="username">' + escapeHtml(msg.username) + verifiedBadge +  '</span>' +
                 (isHidden && msg.ip ? '<span class="ip-display">IP:' + escapeHtml(msg.ip) + '</span>' : '') +
                 '<span class="message-time">' + escapeHtml(msg.created_at.substring(11,16)) + '</span>' +
             '</div>' +
@@ -349,6 +506,13 @@ function buildMessageHtml(msg, isHidden) {
         return html;
     }
 
+function updateOnlineCount() {
+    $.get('sozluk.php?process=chat&action=get_online_count', function(count) {
+        $('#online-count span').text(count);
+    }).fail(function() {
+        console.error('Online sayacı güncellenemedi');
+    });
+}
     function bindMessageEvents() {
         $('.delete-message').off('click').click(function(e) {
             e.preventDefault();
@@ -433,36 +597,38 @@ function buildMessageHtml(msg, isHidden) {
         }
     });
 
-    $('#chat-form').submit(function(e) {
-        e.preventDefault();
-        var nick = $('#nick').val();
-        var message = $('#message').val();
-
-        if (username) {
-            nick = username;
+$('#chat-form').submit(function(e) {
+    e.preventDefault();
+    
+    // 1. Kullanıcı ne yazdıysa onu al (girişli olsa bile)
+    var nick = $('#nick').val().trim();
+    var message = $('#message').val().trim();
+    
+    // 2. Mesaj boş mu kontrol et
+    if(!message) return;
+    
+    // 3. Direkt gönder (artık girişli kullanıcı nicki override edilmez)
+    $.post('sozluk.php?process=chat', {
+        nick: nick, // Artık her zaman input'taki nick gider
+        message: message,
+        action: 'send_message'
+    }).done(function(response) {
+        if(response.trim() === 'OK') {
+            $('#message').val('').height('auto');
+            if(!showingHidden) loadMessages();
         }
+    }).fail(console.error);
+});
 
-        if (nick.trim() !== '' && message.trim() !== '') {
-            $.post('sozluk.php?process=chat', {
-                nick: nick,
-                message: message,
-                action: 'send_message'
-            }, function(response) {
-                if (response.trim() === 'OK') {
-                    $('#message').val('').height('auto');
-                    if (!showingHidden) {
-                        loadMessages();
-                    }
-                } else {
-                    alert('Mesaj gönderilemedi: ' + response);
-                }
-            }).fail(function(jqXHR, textStatus) {
-                alert('Hata oluştu: ' + textStatus);
-            });
-        }
-    });
+    // Dark mode kontrolü
+    checkDarkModePreference();
+    
+    // Dark mode toggle eventi
+   // $('#toggle-dark-mode').click(toggleDarkMode);
 
     setInterval(loadMessages, 3000);
+
+    updateOnlineCount();
     loadMessages();
 });
 </script>
